@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #F8FAFC;
+  transition: filter 0.3s ease, font-size 0.3s ease;
+}
+
+/* High Contrast Mode - Softened to prevent extreme darkness */
+body.high-contrast {
+  filter: invert(0.85) hue-rotate(180deg) contrast(1.05);
+  background-color: #222; /* Softer dark background */
+}
+
+/* Hide scrollbar for clean horizontal scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
