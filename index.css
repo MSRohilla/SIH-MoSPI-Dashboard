@@ -22,3 +22,14 @@ body.high-contrast {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Hide Google Translate UI elements */
+html, body { top: 0px !important; position: static !important; margin-top: 0px !important; }
+.goog-te-banner-frame { display: none !important; }
+.skiptranslate > iframe.goog-te-banner-frame { display: none !important; }
+iframe.goog-te-banner-frame { display: none !important; }
+#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+.goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+.VIpgJd-Zvi9od-aZ2wEe-wOHMyf { display: none !important; }
+.VIpgJd-Zvi9od-ORHb-OEVmcd { display: none !important; }
+
