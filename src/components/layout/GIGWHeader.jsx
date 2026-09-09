@@ -80,13 +80,23 @@ const GIGWHeader = () => {
               <div className="absolute right-0 mt-1 w-24 bg-white rounded shadow-lg overflow-hidden border border-gray-200 z-50">
                 <button 
                   className="w-full text-left px-3 py-1.5 text-xs text-gray-800 hover:bg-blue-50 font-medium transition-colors"
-                  onClick={() => { setLanguage('English'); setLangOpen(false); }}
+                  onClick={() => {
+                    setLanguage('English');
+                    setLangOpen(false);
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select) { select.value = 'en'; select.dispatchEvent(new Event('change')); }
+                  }}
                 >
                   English
                 </button>
                 <button 
                   className="w-full text-left px-3 py-1.5 text-xs text-gray-800 hover:bg-blue-50 font-medium transition-colors"
-                  onClick={() => { setLanguage('हिन्दी'); setLangOpen(false); }}
+                  onClick={() => {
+                    setLanguage('हिन्दी');
+                    setLangOpen(false);
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select) { select.value = 'hi'; select.dispatchEvent(new Event('change')); }
+                  }}
                 >
                   हिन्दी
                 </button>
