@@ -2,6 +2,16 @@
   command = "npm run build"
   publish = "dist"
 
+# PROXY RULE FOR BACKEND
+# After you deploy your backend on Render.com, replace the URL below
+# with your actual Render URL (e.g., https://your-backend-app.onrender.com/api/:splat)
+[[redirects]]
+  from = "/api/*"
+  to = "https://sih-mospi-dashboard.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# REACT ROUTER FALLBACK RULE
 [[redirects]]
   from = "/*"
   to = "/index.html"
