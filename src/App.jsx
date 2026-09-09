@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GIGWHeader from './components/layout/GIGWHeader';
 import Navigation from './components/layout/Navigation';
 import LiveTicker from './components/layout/LiveTicker';
@@ -15,6 +15,16 @@ import Footer from './components/layout/Footer';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
+
+  // Force Google Translate to re-scan when React mounts new tabs
+  useEffect(() => {
+    const select = document.querySelector('.goog-te-combo');
+    if (select && select.value && select.value !== 'en') {
+      setTimeout(() => {
+        select.dispatchEvent(new Event('change'));
+      }, 100);
+    }
+  }, [activeTab]);
 
   const renderActiveTab = () => {
     switch (activeTab) {

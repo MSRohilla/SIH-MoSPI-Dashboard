@@ -14,6 +14,12 @@ body.high-contrast {
   background-color: #222; /* Softer dark background */
 }
 
+/* Prevent images and logos from looking like photo negatives in High Contrast */
+body.high-contrast img,
+body.high-contrast video {
+  filter: invert(1.15) hue-rotate(180deg) contrast(0.95) !important;
+}
+
 /* Hide scrollbar for clean horizontal scrolling */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
