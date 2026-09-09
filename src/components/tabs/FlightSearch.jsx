@@ -25,9 +25,9 @@ const FlightSearch = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 animate-fade-in max-w-[1200px] mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Real-Time Flight Search</h2>
+    <div className="w-full p-4 sm:p-6 md:p-8 animate-fade-in max-w-[1200px] mx-auto overflow-hidden">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-xl md:text-2xl font-bold text-[#0f172a] tracking-tight">Real-Time Flight Search</h2>
         <p className="text-sm text-gray-500 mt-1">Search live flight prices to view their exact Base Fare calculation and Airfare CPI contribution.</p>
       </div>
 
@@ -102,17 +102,17 @@ const FlightSearch = () => {
 
       {/* Results Section */}
       {results && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden w-full">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div>
               <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                Search Results: {origin} <ArrowRight className="w-4 h-4 mx-2 text-gray-400" /> {destination}
+                Search Results: {origin} <ArrowRight className="w-4 h-4 mx-2 text-gray-400 shrink-0" /> {destination}
               </h3>
-              <p className="text-sm text-gray-500">Displaying extracted fares and isolated base fare metrics.</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Displaying extracted fares and isolated base fare metrics.</p>
             </div>
           </div>
           
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-[#f8fafc]">
                 <tr>
