@@ -1,34 +1,30 @@
 import React from 'react';
 import { Plane, AlertTriangle } from 'lucide-react';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 
-const center = [22.5, 78.5]; // Approx center of India
-
+// Relative coordinates for an abstract India-shaped topology map
 const cities = {
-  DEL: { lat: 28.5562, lng: 77.1000, label: 'Delhi (DEL)' },
-  BOM: { lat: 19.0896, lng: 72.8656, label: 'Mumbai (BOM)' },
-  BLR: { lat: 13.1986, lng: 77.7066, label: 'Bengaluru (BLR)' },
-  CCU: { lat: 22.6520, lng: 88.4463, label: 'Kolkata (CCU)' },
-  HYD: { lat: 17.2403, lng: 78.4294, label: 'Hyderabad (HYD)' },
-  PAT: { lat: 25.5913, lng: 85.0880, label: 'Patna (PAT)' },
+  DEL: { x: 35, y: 25, label: 'Delhi (DEL)' },
+  PAT: { x: 62, y: 38, label: 'Patna (PAT)' },
+  CCU: { x: 75, y: 50, label: 'Kolkata (CCU)' },
+  BOM: { x: 18, y: 62, label: 'Mumbai (BOM)' },
+  HYD: { x: 38, y: 68, label: 'Hyderabad (HYD)' },
+  BLR: { x: 33, y: 85, label: 'Bengaluru (BLR)' },
 };
 
-// Volatility colors
+const routes = [
+  { from: 'DEL', to: 'BOM', volatility: 'HIGH', label: '+12% Variance' },
+  { from: 'DEL', to: 'BLR', volatility: 'MEDIUM', label: '+5% Variance' },
+  { from: 'DEL', to: 'CCU', volatility: 'LOW', label: 'Stable' },
+  { from: 'BOM', to: 'BLR', volatility: 'LOW', label: 'Stable' },
+  { from: 'BLR', to: 'HYD', volatility: 'MEDIUM', label: '+4% Variance' },
+  { from: 'CCU', to: 'PAT', volatility: 'HIGH', label: '+15% Variance' },
+];
+
 const colors = {
   HIGH: '#ef4444', // Red
   MEDIUM: '#f59e0b', // Amber
   LOW: '#22c55e', // Green
 };
-
-const routes = [
-  { from: 'DEL', to: 'BOM', volatility: 'HIGH', opacity: 0.9, weight: 4 },
-  { from: 'DEL', to: 'BLR', volatility: 'MEDIUM', opacity: 0.7, weight: 3 },
-  { from: 'DEL', to: 'CCU', volatility: 'LOW', opacity: 0.6, weight: 2 },
-  { from: 'BOM', to: 'BLR', volatility: 'LOW', opacity: 0.6, weight: 2 },
-  { from: 'BLR', to: 'HYD', volatility: 'MEDIUM', opacity: 0.7, weight: 3 },
-  { from: 'CCU', to: 'PAT', volatility: 'HIGH', opacity: 0.9, weight: 4 },
-];
 
 const RouteMap = () => {
   return (
@@ -37,7 +33,7 @@ const RouteMap = () => {
         <div>
           <h3 className="text-lg font-bold text-gray-800 flex items-center">
             <Plane className="w-5 h-5 mr-2 text-blue-600" />
-            Live Network Topology (Google Maps)
+            Live Network Topology (Abstract Map)
           </h3>
           <p className="text-sm text-gray-500 mt-1">Real-time geographic distribution of fare volatility</p>
         </div>
@@ -48,52 +44,92 @@ const RouteMap = () => {
         </div>
       </div>
       
-      <div className="flex-1 rounded-xl overflow-hidden relative z-0 border border-gray-200">
-        <MapContainer center={center} zoom={5} style={{ height: '100%', width: '100%' }} zoomControl={true}>
-          {/* Using Google Maps Tile Server directly to bypass API Key requirements */}
-          <TileLayer
-            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-            attribution="Map data &copy; Google"
-          />
+      <div className="flex-1 rounded-xl overflow-hidden relative border border-gray-100 bg-[#f8fafc]">
+        {/* Custom Zero-Dependency SVG Topology Map */}
+        <svg className="w-full h-full" style={{ minHeight: '400px' }}>
           
-          {/* Draw routes */}
+          {/* Background Grid for aesthetics */}
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" strokeWidth="1"/>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+
+          {/* Draw connecting route lines */}
           {routes.map((route, i) => {
             const start = cities[route.from];
             const end = cities[route.to];
-            const positions = [
-              [start.lat, start.lng],
-              [end.lat, end.lng]
-            ];
+            const color = colors[route.volatility];
+            const isHigh = route.volatility === 'HIGH';
             
+            // Calculate midpoint for the label
+            const midX = (start.x + end.x) / 2;
+            const midY = (start.y + end.y) / 2;
+
             return (
-              <Polyline
-                key={`route-${i}`}
-                positions={positions}
-                pathOptions={{ 
-                  color: colors[route.volatility], 
-                  weight: route.weight,
-                  opacity: route.opacity,
-                  dashArray: route.volatility === 'HIGH' ? '5, 5' : null
-                }}
-              />
+              <g key={`route-${i}`}>
+                {/* Main Line */}
+                <line 
+                  x1={`${start.x}%`} y1={`${start.y}%`} 
+                  x2={`${end.x}%`} y2={`${end.y}%`} 
+                  stroke={color} 
+                  strokeWidth={isHigh ? 4 : 2}
+                  strokeDasharray={isHigh ? "6, 6" : "none"}
+                  opacity={0.7}
+                  className={isHigh ? "animate-pulse" : ""}
+                />
+                
+                {/* Route Label Background */}
+                <rect 
+                  x={`${midX - 5}%`} y={`${midY - 2}%`} 
+                  width="10%" height="4%" 
+                  fill="white" 
+                  rx="4"
+                  stroke={color}
+                  strokeWidth="1"
+                />
+                
+                {/* Route Label Text */}
+                <text 
+                  x={`${midX}%`} y={`${midY}%`} 
+                  fill={color} 
+                  fontSize="10" 
+                  fontWeight="bold" 
+                  textAnchor="middle" 
+                  alignmentBaseline="middle"
+                >
+                  {route.label}
+                </text>
+              </g>
             );
           })}
-          
-          {/* Draw Cities */}
+
+          {/* Draw Cities / Nodes */}
           {Object.entries(cities).map(([code, city]) => (
-            <CircleMarker 
-              key={code}
-              center={[city.lat, city.lng]}
-              radius={7}
-              pathOptions={{ fillColor: '#ea4335', color: '#ffffff', weight: 2, fillOpacity: 1 }}
-            >
-              <Popup>
-                <div className="font-bold text-gray-900">{city.label}</div>
-                <div className="text-xs text-gray-500 mt-1">Live tracking active</div>
-              </Popup>
-            </CircleMarker>
+            <g key={code} className="cursor-pointer hover:opacity-80 transition-opacity">
+              {/* Outer Glow */}
+              <circle cx={`${city.x}%`} cy={`${city.y}%`} r="12" fill="#3b82f6" opacity="0.2" className="animate-ping" />
+              {/* Inner Node */}
+              <circle cx={`${city.x}%`} cy={`${city.y}%`} r="6" fill="#1e293b" stroke="white" strokeWidth="2" />
+              {/* City Label Box */}
+              <rect x={`${city.x + 2}%`} y={`${city.y - 4}%`} width="12%" height="5%" fill="white" rx="4" opacity="0.9" />
+              {/* City Name */}
+              <text x={`${city.x + 3}%`} y={`${city.y - 1}%`} fill="#0f172a" fontSize="12" fontWeight="bold">
+                {city.label}
+              </text>
+              {/* Active Tracking Status */}
+              <text x={`${city.x + 3}%`} y={`${city.y + 2}%`} fill="#64748b" fontSize="9">
+                Live Tracking Active
+              </text>
+            </g>
           ))}
-        </MapContainer>
+        </svg>
+
+        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-sm border border-gray-200 max-w-xs">
+          <p className="text-xs text-gray-600 flex items-start">
+            <AlertTriangle className="w-4 h-4 text-amber-500 mr-1.5 shrink-0" />
+            <span>Abstract geographic representation. Dashed lines indicate routes experiencing &gt;10% price variance in the last 4 hours.</span>
+          </p>
+        </div>
       </div>
     </div>
   );
