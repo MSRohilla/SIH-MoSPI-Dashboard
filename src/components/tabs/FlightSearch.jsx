@@ -101,7 +101,17 @@ const FlightSearch = () => {
       </div>
 
       {/* Results Section */}
-      {results && (
+      {results && results.length === 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+            <Search className="w-6 h-6 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-1">No Flights Found</h3>
+          <p className="text-gray-500">We couldn't find any data for the selected route and date combination.</p>
+        </div>
+      )}
+
+      {results && results.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden w-full">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div>

@@ -370,48 +370,38 @@ def export_report(
 
 @app.get("/api/flight-search")
 def flight_search(origin: str, destination: str, date: str):
-    # Determine the route string
-    route = f"{origin}-{destination}"
-    # Sometimes routes can be inverted in the mock DB, check both
-    conn = get_db_connection()
-    route_check = pd.read_sql_query(f"SELECT route FROM flight_pricing WHERE route IN ('{origin}-{destination}', '{destination}-{origin}') LIMIT 1", conn)
+    import csv, os, random
+    data_path = os.path.join(os.path.dirname(__file__), 'flight_data.csv')
+    if not os.path.exists(data_path):
+        return []
     
-    active_route = route
-    if not route_check.empty:
-        active_route = route_check.iloc[0]['route']
-    
-    # Calculate historical base year average for THIS specific route
-    # Using the oldest 30 days as a proxy for "Base Year"
-    hist_df = pd.read_sql_query(f"SELECT base_fare FROM flight_pricing WHERE route = '{active_route}' ORDER BY date ASC LIMIT 100", conn)
-    base_avg = hist_df['base_fare'].mean() if not hist_df.empty else 4000.0
-    conn.close()
-    
-    # Generate live search results
-    airlines_list = ['IndiGo', 'Air India', 'SpiceJet', 'Akasa']
+    route_to_search = f"{origin}-{destination}"
     results = []
     
-    for _ in range(random.randint(4, 8)):
-        al = random.choice(airlines_list)
-        bf = random.randint(3500, 11000)
-        tax = int(bf * 0.18)
-        
-        # Calculate specific index for this flight
-        idx_val = (bf / base_avg) * 100
-        status = 'Normal'
-        if idx_val > 115: status = 'High'
-        elif idx_val < 85: status = 'Below Avg'
-            
-        results.append({
-            "id": f"{al[:2].upper()}-{random.randint(100, 999)}",
-            "airline": al,
-            "dep": f"{random.randint(5, 22):02d}:{random.choice(['00', '15', '30', '45'])}",
-            "arr": f"{(random.randint(5, 22) + 2) % 24:02d}:{random.choice(['00', '15', '30', '45'])}",
-            "baseFare": bf,
-            "tax": tax,
-            "index": round(idx_val, 1),
-            "status": status
-        })
-        
+    with open(data_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row.get('route') == route_to_search and row.get('flight_date') == date:
+                bf = float(row.get('base_fare', 0))
+                tax = float(row.get('taxes_and_fees', 0))
+                al = row.get('carrier', 'Unknown')
+                
+                base_avg = 4000.0
+                idx_val = (bf / base_avg) * 100
+                status = 'Normal'
+                if idx_val > 115: status = 'High'
+                elif idx_val < 85: status = 'Below Avg'
+                
+                results.append({
+                    "id": f"{al[:2].upper()}-{random.randint(100, 999)}",
+                    "airline": al,
+                    "dep": f"{random.randint(5, 22):02d}:{random.choice(['00', '15', '30', '45'])}",
+                    "arr": f"{(random.randint(5, 22) + 2) % 24:02d}:{random.choice(['00', '15', '30', '45'])}",
+                    "baseFare": int(bf),
+                    "tax": int(tax),
+                    "index": round(idx_val, 1),
+                    "status": status
+                })
     return sorted(results, key=lambda x: x['baseFare'])
 
 # ==========================================
@@ -607,3 +597,23 @@ def get_advance_purchase_topology():
         result.append(row_data)
 
     return result
+
+
+@app.get("/api/export-csv")
+def export_csv_overview(
+    route: str = Query(None),
+    advance_window: str = Query(None),
+    days: str = Query(None)
+):
+    import os, io, csv
+    from fastapi.responses import StreamingResponse
+    data_path = os.path.join(os.path.dirname(__file__), 'flight_data.csv')
+    if not os.path.exists(data_path):
+        return StreamingResponse(iter([]), media_type="text/csv")
+    
+    with open(data_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        
+    media_type = "text/csv"
+    filename = f"mospi_analysis_export.csv"
+    return StreamingResponse(iter([content]), media_type=media_type, headers={"Content-Disposition": f'attachment; filename="{filename}"'})
