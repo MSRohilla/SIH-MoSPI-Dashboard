@@ -1,14 +1,9 @@
 import React from 'react';
-import { Plane } from 'lucide-react';
-import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/api';
+import { Plane, AlertTriangle } from 'lucide-react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const containerStyle = {
-  width: '100%',
-  height: '100%',
-  borderRadius: '0.75rem'
-};
-
-const center = { lat: 22.5, lng: 78.5 };
+const center = [22.5, 78.5]; // Approx center of India
 
 const cities = {
   DEL: { lat: 28.5562, lng: 77.1000, label: 'Delhi (DEL)' },
@@ -19,7 +14,12 @@ const cities = {
   PAT: { lat: 25.5913, lng: 85.0880, label: 'Patna (PAT)' },
 };
 
-const colors = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#22c55e' };
+// Volatility colors
+const colors = {
+  HIGH: '#ef4444', // Red
+  MEDIUM: '#f59e0b', // Amber
+  LOW: '#22c55e', // Green
+};
 
 const routes = [
   { from: 'DEL', to: 'BOM', volatility: 'HIGH', opacity: 0.9, weight: 4 },
@@ -31,58 +31,69 @@ const routes = [
 ];
 
 const RouteMap = () => {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-  });
-
   return (
     <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-blue-50 h-[550px] flex flex-col">
       <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-4">
         <div>
           <h3 className="text-lg font-bold text-gray-800 flex items-center">
             <Plane className="w-5 h-5 mr-2 text-blue-600" />
-            Live Network Topology
+            Live Network Topology (Google Maps)
           </h3>
           <p className="text-sm text-gray-500 mt-1">Real-time geographic distribution of fare volatility</p>
+        </div>
+        <div className="flex space-x-3 text-xs font-semibold">
+          <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-red-500 mr-1"></span> High Volatility</div>
+          <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-500 mr-1"></span> Moderate</div>
+          <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-green-500 mr-1"></span> Stable</div>
         </div>
       </div>
       
       <div className="flex-1 rounded-xl overflow-hidden relative z-0 border border-gray-200">
-        {isLoaded ? (
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={5}
-            options={{ disableDefaultUI: true }}
-          >
-            {routes.map((route, i) => (
+        <MapContainer center={center} zoom={5} style={{ height: '100%', width: '100%' }} zoomControl={true}>
+          {/* Using Google Maps Tile Server directly to bypass API Key requirements */}
+          <TileLayer
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+            attribution="Map data &copy; Google"
+          />
+          
+          {/* Draw routes */}
+          {routes.map((route, i) => {
+            const start = cities[route.from];
+            const end = cities[route.to];
+            const positions = [
+              [start.lat, start.lng],
+              [end.lat, end.lng]
+            ];
+            
+            return (
               <Polyline
-                key={i}
-                path={[
-                  { lat: cities[route.from].lat, lng: cities[route.from].lng },
-                  { lat: cities[route.to].lat, lng: cities[route.to].lng }
-                ]}
-                options={{
-                  strokeColor: colors[route.volatility],
-                  strokeWeight: route.weight,
-                  strokeOpacity: route.opacity,
+                key={`route-${i}`}
+                positions={positions}
+                pathOptions={{ 
+                  color: colors[route.volatility], 
+                  weight: route.weight,
+                  opacity: route.opacity,
+                  dashArray: route.volatility === 'HIGH' ? '5, 5' : null
                 }}
               />
-            ))}
-            {Object.keys(cities).map((key) => (
-              <Marker
-                key={key}
-                position={{ lat: cities[key].lat, lng: cities[key].lng }}
-                label={{ text: cities[key].label, fontSize: '12px', fontWeight: 'bold' }}
-              />
-            ))}
-          </GoogleMap>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-            Loading Google Maps...
-          </div>
-        )}
+            );
+          })}
+          
+          {/* Draw Cities */}
+          {Object.entries(cities).map(([code, city]) => (
+            <CircleMarker 
+              key={code}
+              center={[city.lat, city.lng]}
+              radius={7}
+              pathOptions={{ fillColor: '#ea4335', color: '#ffffff', weight: 2, fillOpacity: 1 }}
+            >
+              <Popup>
+                <div className="font-bold text-gray-900">{city.label}</div>
+                <div className="text-xs text-gray-500 mt-1">Live tracking active</div>
+              </Popup>
+            </CircleMarker>
+          ))}
+        </MapContainer>
       </div>
     </div>
   );
